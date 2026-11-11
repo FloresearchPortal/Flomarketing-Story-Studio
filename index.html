@@ -6516,7 +6516,7 @@ window.__MB_AUDIO__="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYw
       codecs.forEach(function (c) {
         tries.push({
           codec: c, width: sz[0], height: sz[1], framerate: fps,
-          bitrate: sz[0] >= 3840 ? 30000000 : (sz[0] >= 1920 ? 12000000 : 6000000)
+          bitrate: sz[0] >= 3840 ? 30000000 : (sz[0] >= 1920 ? 20000000 : 15000000)
         });
       });
     });
@@ -6672,7 +6672,7 @@ window.__MB_AUDIO__="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYw
       if (window.MediaRecorder && MediaRecorder.isTypeSupported(types[i])) { mime = types[i]; break; }
     }
     if (!mime) { say("This browser can't record video \u2014 try Chrome or Edge."); return; }
-    var rec = new MediaRecorder(out.captureStream(30), { mimeType: mime, videoBitsPerSecond: 8000000 });
+    var rec = new MediaRecorder(out.captureStream(30), { mimeType: mime, videoBitsPerSecond: 15000000 });
     var parts = [];
     rec.ondataavailable = function (e) { if (e.data.size) parts.push(e.data); };
     rec.onstop = function () {
