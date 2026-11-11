@@ -3183,14 +3183,6 @@ window.__MB_AUDIO__="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYw
     }
     return a;
   }
-  var CALLS_MAX = 3;
-  function blankCalls() {
-    var a = [];
-    for (var i = 0; i < CALLS_MAX; i++) {
-      a.push({ s: "", cur: "", strat: "buy", entry: "", target: "", stop: "", hit: false });
-    }
-    return a;
-  }
   var NEWS_MAX = 8;
   function blankNews() {
     var a = [];
@@ -3281,8 +3273,7 @@ window.__MB_AUDIO__="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYw
       date: iso,
       title: "MARKET WRAP",
       kicker: "PAKISTAN STOCK EXCHANGE",
-      slides: { cover: true, summary: true, news: true, active: true, gainers: true, losers: true, dollar: true, calls: true,
-        mb_intro: true, mb_news: true, mb_sec: true, mb_oil: true, mb_intl: true },
+      slides: { cover: true, summary: true, news: true, active: true, gainers: true, losers: true, dollar: true,         mb_intro: true, mb_news: true, mb_sec: true, mb_oil: true, mb_intl: true },
       mb: mbDefaults(),
       idx: [
         { n: "KSE-100 INDEX", v: "", c: "", p: "", hi: "", lo: "" },
@@ -3295,12 +3286,6 @@ window.__MB_AUDIO__="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYw
       usdBuy: "", usdSell: "", usdChg: "", usdNote: "",
       usdPrev: "", usdPrevDate: "", usdRateDate: "", usdAuto: true,
       note: "",
-      callsKicker: "TODAY'S TRADING PLAN",
-      callsTitle: "INTRADAY CALLS",
-      callsNote: "Levels are for today's session only",
-      callsSource: "Floret Capitals research desk",
-      callsDisclaimer: "Disclaimer: Intraday calls are for informational purposes only and do not constitute investment advice",
-      calls: blankCalls(),
       newsKicker: "TODAY'S KEY NEWS",
       newsSource: "Compiled from the day's market reports",
       news: blankNews(),
@@ -3321,7 +3306,6 @@ window.__MB_AUDIO__="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYw
   var SECTIONS = [
     { id: "wrap", label: "Market Wrap Video" },
     { id: "morning", label: "Morning Updates Video" },
-    { id: "calls", label: "Intraday Calls" },
     { id: "ticker", label: "Ticker Video" }
   ];
   function secSlides() {
@@ -3348,14 +3332,11 @@ window.__MB_AUDIO__="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYw
       while (s.ticker.length < TICKER_MAX) s.ticker.push({ s: "", pr: "", ch: "", pc: "", hi: "", lo: "", vol: "" });
       s.ticker = s.ticker.slice(0, TICKER_MAX);
       if (!s.ticker.some(function (r) { return String(r.s || "").trim(); })) s.ticker = blankTicker();
-      if (!Array.isArray(s.calls) || s.calls.length !== CALLS_MAX) s.calls = blankCalls();
-      s.calls.forEach(function (c) { if (c.strat !== "sell") c.strat = c.strat === "short" ? "sell" : "buy"; });
       if (!Array.isArray(s.news)) s.news = blankNews();
       while (s.news.length < NEWS_MAX) s.news.push({ t: "", i: "neu" });
       s.news = s.news.slice(0, NEWS_MAX);
       if (s.usdSource === "Source: interbank market") s.usdSource = base.usdSource;
       if (s.tickerSize === "4x") s.tickerSize = "2x";
-      if (s.callsDisclaimer === "Not investment advice. Trade at your own risk.") s.callsDisclaimer = base.callsDisclaimer;
       if (!Array.isArray(s.idx) || s.idx.length !== 3) s.idx = base.idx;
       s.mb = mbMerge(s.mb, mbDefaults());
       state = s;
@@ -4581,91 +4562,6 @@ window.__MB_AUDIO__="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYw
     }
   }
 
-  /* --------------------------------------------- intraday calls slide -- */
-  var STRATS = { buy: { label: "BUY" }, sell: { label: "SELL" } };
-  function stratColour(t, k) { return k === "sell" ? t.neg : t.pos; }
-
-  function callsSlide(g, t) {
-    var y = titleBlock(g, t, state.callsKicker || "TODAY'S TRADING PLAN",
-      (state.callsTitle || "INTRADAY CALLS").toUpperCase(), t.accent);
-    var w = W - M * 2;
-    var hasNote = !!String(state.callsNote).trim();
-    var bottom = BOTTOM - (hasNote ? 120 : 0);
-
-    var items = (state.calls || []).filter(function (c) { return String(c.s || "").trim(); });
-    if (!items.length) {
-      card(g, t, M, y, w, 190, 26, false);
-      T(g, "Add today's calls in the panel on the left", W / 2, y + 108,
-        { size: 30, weight: 700, color: t.faint, align: "center" });
-      return;
-    }
-
-    var gap = 26;
-    var ch = Math.min(360, (bottom - y - gap * (items.length - 1)) / items.length);
-    var by = y;
-
-    items.forEach(function (c) {
-      if (c.hit) glassCard(g, M, by, w, ch, 28, true);
-      else card(g, t, M, by, w, ch, 28, false);
-      var sym = String(c.s).trim().toUpperCase();
-      var col = stratColour(t, c.strat);
-
-      T(g, sym, M + 40, by + 76, { size: fitSize(g, sym, 420, 46, 800, 0), weight: 800, color: t.text, ls: 0.5 });
-
-      /* the call itself, as a chip */
-      var lab = (STRATS[c.strat] || STRATS.buy).label;
-      var lw = measure(g, lab, 24, 800, 3) + 52;
-      var chipR = M + w - 40;
-      box(g, chipR - lw, by + 42, lw, 52, 26, rgba(col, 0.14), rgba(col, 0.5), 2.5);
-      T(g, lab, chipR - lw / 2, by + 77, { size: 24, weight: 800, color: col, align: "center", ls: 3 });
-
-      if (c.hit) {
-        var hl = "HIT", hw = measure(g, hl, 24, 800, 3) + 78;
-        var hx = chipR - lw - 14 - hw;
-        box(g, hx, by + 42, hw, 52, 26, t.pos, null, 0);
-        /* a drawn tick, since the glyph isn't in the embedded font */
-        g.save();
-        g.strokeStyle = "#ffffff"; g.lineWidth = 4;
-        g.lineCap = "round"; g.lineJoin = "round";
-        g.beginPath();
-        g.moveTo(hx + 24, by + 69); g.lineTo(hx + 31, by + 77); g.lineTo(hx + 45, by + 59);
-        g.stroke();
-        g.restore();
-        T(g, hl, hx + 58, by + 77, { size: 24, weight: 800, color: "#ffffff", ls: 3 });
-      }
-
-      var cur = fmtNum(c.cur, 2);
-      if (cur) {
-        T(g, "CURRENT", M + 40, by + 126, { size: 20, weight: 800, color: t.muted, ls: 3 });
-        T(g, "Rs " + cur, M + 40 + measure(g, "CURRENT", 20, 800, 3) + 16, by + 126,
-          { size: 30, weight: 700, color: t.text });
-      }
-
-      box(g, M + 40, by + ch - 152, w - 80, 2, 1, t.line);
-
-      var cols = [
-        { l: "ENTRY", v: fmtNum(c.entry, 2), c: t.text },
-        { l: "TARGET", v: fmtNum(c.target, 2), c: t.pos },
-        { l: "STOP LOSS", v: fmtNum(c.stop, 2), c: t.neg }
-      ];
-      var cw = (w - 80) / 3;
-      cols.forEach(function (cl, i) {
-        var cx = M + 40 + i * cw;
-        T(g, cl.l, cx, by + ch - 104, { size: 20, weight: 800, color: t.muted, ls: 3 });
-        var vs = fitSize(g, cl.v ? "Rs " + cl.v : "\u2014", cw - 24, 36, 800, 0);
-        T(g, cl.v ? "Rs " + cl.v : "\u2014", cx, by + ch - 46, { size: vs, weight: 800, color: cl.c });
-      });
-
-      by += ch + gap;
-    });
-
-    if (hasNote) {
-      var ny = bottom + 24;
-      card(g, t, M, ny, w, 92, 22, false);
-      var ns = fitSize(g, state.callsNote, w - 70, 28, 700, 1);
-      T(g, state.callsNote, W / 2, ny + 56, { size: ns, weight: 700, color: t.muted, align: "center", ls: 1 });
-    }
-  }
 
   /* ------------------------------------------------ highlights slide -- */
   var IMPACT = {
@@ -5772,7 +5668,6 @@ window.__MB_AUDIO__="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYw
     { id: "gainers", label: "Gainers", sec: "wrap" },
     { id: "losers", label: "Losers", sec: "wrap" },
     { id: "dollar", label: "Dollar", sec: "wrap" },
-    { id: "calls", label: "Calls", sec: "calls" },
     { id: "mb_intro", label: "Intro", sec: "morning" },
     { id: "mb_news", label: "News", sec: "morning" },
     { id: "mb_sec", label: "Sectors", sec: "morning" },
@@ -5802,15 +5697,14 @@ window.__MB_AUDIO__="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYw
     });
     header(g, t, type !== "cover", type === "cover");
     footer(g, t,
-      type === "dollar" ? state.usdSource : (type === "news" ? state.newsSource : (type === "calls" ? state.callsSource : null)),
-      type === "calls" ? state.callsDisclaimer : null);
+      type === "dollar" ? state.usdSource : (type === "news" ? state.newsSource : null),
+      null);
 
     if (type === "cover") coverSlide(g, t);
     else if (type === "summary") summarySlide(g, t);
     else if (type === "active") listSlide(g, t, state.active, { title: "TOP 5 ACTIVE", kicker: "BY VOLUME TRADED", accent: t.accent, mode: "active" });
     else if (type === "gainers") listSlide(g, t, state.gainers, { title: "TOP 5 GAINERS", kicker: "BIGGEST MOVERS UP", accent: t.pos, mode: "pct" });
     else if (type === "news") newsSlide(g, t);
-    else if (type === "calls") callsSlide(g, t);
     else if (type === "dollar") dollarSlide(g, t);
     else if (type === "losers") listSlide(g, t, state.losers, { title: "TOP 5 LOSERS", kicker: "BIGGEST MOVERS DOWN", accent: t.neg, mode: "pct" });
   }
@@ -6855,44 +6749,7 @@ window.__MB_AUDIO__="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYw
 
     }
 
-    if (section === "calls") {
-    h += '<div class="card"><h2><span class="dot"></span>Intraday calls</h2>' +
-      '<p class="hint">Three calls for the session: the stock, whether it is a buy or a sell, ' +
-      'and the levels. Leave a row blank to drop it. Tick \u201cTarget hit\u201d at the end of the day and that call turns green.</p>' +
-      '<p class="hint">' + NEG_HINT + '</p>' +
-      '<div class="grid g2" style="margin-bottom:14px">' +
-      field("Kicker line", "callsKicker", "TODAY'S TRADING PLAN") +
-      field("Heading", "callsTitle", "INTRADAY CALLS") +
-      '</div>';
-    for (var ci = 0; ci < CALLS_MAX; ci++) {
-      h += '<div class="callcard"><div class="grid g3">' +
-        '<div><label>Stock</label><input type="text" data-p="calls.' + ci + '.s" value="' +
-        esc(state.calls[ci].s) + '" placeholder="SYMBOL"></div>' +
-        '<div><label>Call</label><select data-p="calls.' + ci + '.strat">' +
-        ["buy|Buy", "sell|Sell"].map(function (o) {
-          var v = o.split("|")[0];
-          return '<option value="' + v + '"' + (state.calls[ci].strat === v ? " selected" : "") + '>' +
-            o.split("|")[1] + '</option>';
-        }).join("") + '</select></div>' +
-        field("Current price", "calls." + ci + ".cur", "0.00") +
-        '</div><div class="grid g3" style="margin-top:10px">' +
-        field("Entry", "calls." + ci + ".entry", "0.00") +
-        field("Target", "calls." + ci + ".target", "0.00") +
-        field("Stop loss", "calls." + ci + ".stop", "0.00") +
-        '</div><div class="toggles" style="margin-top:12px">' +
-        '<label class="tg' + (state.calls[ci].hit ? " on" : "") + '" data-callhit="' + ci + '">' +
-        '<span class="bx"></span>Target hit</label></div></div>';
-    }
-    h += '<div class="grid g2" style="margin-top:6px">' +
-      field("Note under the calls", "callsNote", "Levels are for today's session only") +
-      field("Source line", "callsSource", "Floret Capitals research desk") +
-      '</div>' +
-      '<div style="margin-top:12px">' +
-      field("Disclaimer on this slide", "callsDisclaimer", "Disclaimer: Intraday calls are for informational purposes only and do not constitute investment advice") +
-      '</div></div>';
-    }
-
-    if (section === "news-retired") {
+        if (section === "news-retired") {
     h += '<div class="card"><h2><span class="dot"></span>Market highlights</h2>' +
       '<p class="hint">Up to eight headlines for the day, each tagged as positive, negative or neutral for the market. ' +
       'Leave a line blank to drop it \u2014 the slide sizes itself to whatever you fill in.</p>' +
@@ -7144,14 +7001,6 @@ window.__MB_AUDIO__="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYw
       if (ck) {
         state[ck] = ck === "ticker" ? blankTicker() : blankRows();
         buildForm(); renderPreview(); save();
-        return;
-      }
-      var hitBtn = e.target.closest ? e.target.closest("[data-callhit]") : null;
-      if (hitBtn) {
-        var hi2 = +hitBtn.getAttribute("data-callhit");
-        state.calls[hi2].hit = !state.calls[hi2].hit;
-        hitBtn.classList.toggle("on", state.calls[hi2].hit);
-        renderPreview(); save();
         return;
       }
       if (e.target.id === "tkgo") { makeTicker(); return; }
