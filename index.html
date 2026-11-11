@@ -198,9 +198,9 @@ input[type=range]:focus{background:none}
           <input type="range" id="mbSeek" min="0" max="29.1" step="0.01" value="0" aria-label="Position in the video">
           <span class="mbtime" id="mbTime">0:00 / 0:29</span>
         </div>
-        <div class="grid g2">
-          <div><label for="mbFps">Frame rate</label><select id="mbFps"><option value="30">30 fps (smaller file)</option><option value="60">60 fps (smoothest)</option></select></div>
-          <div style="display:flex;align-items:flex-end"><button class="btn primary" id="mbMake" style="width:100%">Make the MP4</button></div>
+        <div>
+          <select id="mbFps" hidden><option value="30">30</option></select>
+          <button class="btn primary" id="mbMake" style="width:100%">Make the MP4</button>
         </div>
         <div class="stat" id="mbStat"></div>
         <div id="mbOut"></div>
