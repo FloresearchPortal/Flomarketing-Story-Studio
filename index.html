@@ -3005,7 +3005,7 @@ window.__MB_AUDIO__="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYw
     function step() {
       if (i >= list.length) return Promise.resolve(null);
       var c = list[i++];
-      var cfg = { codec: c[0], width: W, height: H, framerate: fps, bitrate: 12000000 };
+      var cfg = { codec: c[0], width: W, height: H, framerate: fps, bitrate: 20000000 };
       if (c[1] === "avc") cfg.avc = { format: "avc" };
       return window.VideoEncoder.isConfigSupported(cfg).then(function (r) { return r && r.supported ? { cfg: cfg, mux: c[1] } : step(); }, step);
     }
@@ -3134,7 +3134,7 @@ window.__MB_AUDIO__="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYw
           src = ac.createBufferSource(); src.buffer = ab; src.connect(dest);
           dest.stream.getAudioTracks().forEach(function (tr) { stream.addTrack(tr); });
         }
-        var rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 12000000 });
+        var rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 20000000 });
         var parts = [];
         rec.ondataavailable = function (e) { if (e.data && e.data.size) parts.push(e.data); };
         rec.onstop = function () { res({ blob: new Blob(parts, { type: mime }), ext: mime.indexOf("mp4") >= 0 ? "mp4" : "webm", audio: src ? "yes" : "none", codec: mime }); };
